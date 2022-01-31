@@ -24,8 +24,8 @@ jobs:
 
     container:
       image: quay.io/centos/centos:${{ matrix.container-name }}
-      volumes:
-        - /github/home/.m2:/root/.m2
+      # volumes:
+      #  - /github/home/.m2:/root/.m2
 
     steps:
     - name: Prepare CentOS Stream 8 environment
@@ -57,6 +57,14 @@ jobs:
 
     - name: Checkout sources
       uses: actions/checkout@v2
+
+    - name: Setup maven cache
+      uses: actions/cache@v2
+      with:
+        path: /root/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
 
     - name: Maven repo before build
       run: |
