@@ -1,0 +1,72 @@
+name: build
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: centos-stream-8
+            shortcut: cs8
+            container-name: stream8
+          - name: centos-stream-9
+            shortcut: cs9
+            container-name: stream9
+
+    name: ${{ matrix.name }}
+
+    container:
+      image: quay.io/centos/centos:${{ matrix.container-name }}
+      volumes:
+        - /github/home/.m2:/root/.m2
+
+    steps:
+    - name: Prepare CentOS Stream 8 environment
+      if: ${{ matrix.shortcut == 'cs8' }}
+      run: |
+        # Configure CS8 repositories
+        dnf config-manager --enable powertools
+        dnf module enable -y pki-deps javapackages-tools
+
+    - name: Prepare CentOS Stream 9 environment
+      if: ${{ matrix.shortcut == 'cs9' }}
+      run: |
+        # DNF core plugins are installed in the official CS9 container image
+        dnf install -y dnf-plugins-core
+
+        # Configure CS9 repositories
+        dnf config-manager --enable crb
+
+    - name: Install required packages
+      run: |
+        dnf install -y \
+          dnf-utils \
+          git \
+          gzip \
+          java-11-openjdk-devel \
+          maven \
+          sed \
+          tar
+
+    - name: Checkout sources
+      uses: actions/checkout@v2
+
+    - name: Maven repo before build
+      run: |
+        ls -lrR ~/.m2 || echo 'No cache'
+
+    - name: Perform build
+      run: |
+        mvn help:evaluate -Dexpression=settings.localRepository
+
+    - name: Maven repo before build
+      run: |
+        ls -lrR ~/.m2 || echo 'No cache'
+
