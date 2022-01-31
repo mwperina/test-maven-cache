@@ -1,9 +1,9 @@
 name: build
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -16,9 +16,9 @@ jobs:
           - name: centos-stream-8
             shortcut: cs8
             container-name: stream8
-          - name: centos-stream-9
-            shortcut: cs9
-            container-name: stream9
+          # - name: centos-stream-9
+          #  shortcut: cs9
+          #  container-name: stream9
 
     name: ${{ matrix.name }}
 
@@ -60,13 +60,13 @@ jobs:
 
     - name: Maven repo before build
       run: |
-        ls -lrR ~/.m2 || echo 'No cache'
+        ls -lrR /root/.m2 || echo 'No cache'
 
     - name: Perform build
       run: |
         mvn help:evaluate -Dexpression=settings.localRepository
 
-    - name: Maven repo before build
+    - name: Maven repo after build
       run: |
-        ls -lrR ~/.m2 || echo 'No cache'
+        ls -lrR /root/.m2 || echo 'No cache'
 
